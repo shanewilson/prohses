@@ -10,6 +10,7 @@
 
 ;; connect to database
 (def conn (d/connect uri))
+(def db (d/db conn))
 
 ;; parse schema edn file
 (def schema-tx (read-string (slurp "resources/schema.edn")))
@@ -22,4 +23,8 @@
 (defn get-projects
   []
   ""
-  (d/q '[:find ?n :where [?n :news/title]] db))
+  (d/q '[:find ?p ?code ?name
+         :where
+         [?p :project/name ?name]
+         [?p :project/code ?code]]
+       db))

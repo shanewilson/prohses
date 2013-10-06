@@ -1,3 +1,5 @@
+buzzwords: vagrant, ansible, REST, clojure, datomic
+
 # prohses
 
 The project uses [Midje](https://github.com/marick/Midje/)).
