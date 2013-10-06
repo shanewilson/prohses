@@ -1,0 +1,13 @@
+---
+
+# Install Nginx
+- name: "Install Nginx"
+  apt: name=nginx state=latest update_cache=yes
+  tags:
+    - nginx
+
+# Ensure Nginx is running
+- name: "Ensure Nginx is running"
+  service: name=${nginx_service} state=started
+  tags:
+    - nginx

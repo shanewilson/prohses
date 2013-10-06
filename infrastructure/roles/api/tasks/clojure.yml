@@ -1,0 +1,7 @@
+---
+
+- name: "Get Leiningen"
+  get_url: url=https://raw.github.com/technomancy/leiningen/stable/bin/lein dest=${lein_dir}
+
+- name: "Set Leiningen permissions"
+  file: path=${lein_dir} mode=0755

@@ -1,0 +1,21 @@
+---
+
+- hosts: all
+  sudo: yes
+  roles:
+    - role: common
+
+- hosts: web
+  sudo: yes
+  roles:
+    - role: web
+
+- hosts: api
+  sudo: yes
+  roles:
+    - role: api
+
+- hosts: db
+  sudo: yes
+  roles:
+    - role: db

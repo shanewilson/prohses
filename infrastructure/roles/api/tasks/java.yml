@@ -1,0 +1,32 @@
+---
+
+- name: "Ensure required packages are installed for Java 7"
+  apt: name=$item state=latest update_cache=yes
+  with_items: ${java_dependencies}
+  tags:
+    - java
+
+- name: "Add Java repository to sources"
+  action: apt_repository repo=${java_ppa}
+  tags:
+    - java
+
+- name: "Autoaccept license for Java"
+  action: shell echo ${java_installer} shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
+  tags:
+    - java
+
+- name: "Update APT package cache"
+  action: apt update_cache=yes
+  tags:
+    - java
+
+- name: "Install Java 7"
+  action: apt pkg=${java_installer} state=latest install_recommends=yes
+  tags:
+    - java
+
+- name: "Set Java 7 Env"
+  action: apt pkg=oracle-java7-set-default state=latest install_recommends=yes
+  tags:
+    - java

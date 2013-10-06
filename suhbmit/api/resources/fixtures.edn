@@ -1,0 +1,10 @@
+;; project
+[{:db/id #db/id[:db.part/user]
+  :project/code "PRJ1"
+  :project/name "Project One"}
+ {:db/id #db/id[:db.part/user]
+  :project/code "PRJ2"
+  :project/name "Project Two"}
+ {:db/id #db/id[:db.part/user]
+  :project/code "PRJ3"
+  :project/name "Project Three"}]

@@ -1,0 +1,10 @@
+---
+
+# Java
+java_ppa: "ppa:webupd8team/java"
+java_dependencies:
+    - python-software-properties
+java_installer: "oracle-java7-installer"
+
+# Temp Dir
+tmp_dir: '/tmp'
