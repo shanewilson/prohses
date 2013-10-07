@@ -1,18 +1,21 @@
-;; dictionary
-[
+[;; dictionary
  {:db/doc "Dictionary Version"
   :db/id #db/id[:db.part/db]
   :db/ident :dictionary/version
-  :db/valueType :db.type/string
+  :db/valueType :db.type/long
   :db/cardinality :db.cardinality/one
   :db/unique :db.unique/identity
   :db.install/_attribute :db.part/db}
- {:db/doc "Dictionary State"
+ {:db/doc "State of the Dictionary"
   :db/id #db/id[:db.part/db]
   :db/ident :dictionary/state
-  :db/valueType :db.type/string
+  :db/valueType :db.type/ref
   :db/cardinality :db.cardinality/one
   :db.install/_attribute :db.part/db}
+
+ ;; dictionary/state enum values
+ [:db/add #db/id[:db.part/user] :db/ident :dictionary.state/fluid]
+ [:db/add #db/id[:db.part/user] :db/ident :dictionary.state/frozen]
 
  ;; project
  {:db/doc "Project Code"
@@ -31,26 +34,56 @@
   :db.install/_attribute :db.part/db}
 
  ;; release
- {:db/doc "Release Version"
+ {:db/doc "Release Number"
   :db/id #db/id[:db.part/db]
-  :db/ident :release/version
+  :db/ident :release/number
   :db/valueType :db.type/long
   :db/cardinality :db.cardinality/one
   :db/unique :db.unique/identity
   :db.install/_attribute :db.part/db}
- {:db/doc "Release State"
+ {:db/doc "State of the Release"
   :db/id #db/id[:db.part/db]
   :db/ident :release/state
-  :db/valueType :db.type/string
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db.install/_attribute :db.part/db}
+  {:db/doc "Dictionary used for this Release"
+  :db/id #db/id[:db.part/db]
+  :db/ident :release/dictionary
+  :db/valueType :db.type/ref
   :db/cardinality :db.cardinality/one
   :db.install/_attribute :db.part/db}
 
+ ;; release/state enum values
+ [:db/add #db/id[:db.part/user] :db/ident :release.state/open]
+ [:db/add #db/id[:db.part/user] :db/ident :release.state/closed]
+
  ;; submission
- {:db/doc "Submission State"
+ {:db/doc "State of the Submission"
   :db/id #db/id[:db.part/db]
-  :db/ident :user/email
-  :db/valueType :db.type/string
-  :db/unique :db.unique/identity
+  :db/ident :submission/state
+  :db/valueType :db.type/ref
   :db/cardinality :db.cardinality/one
   :db.install/_attribute :db.part/db}
- ]
+ {:db/doc "Submission is for this Project"
+  :db/id #db/id[:db.part/db]
+  :db/ident :submission/project
+  :db/valueType :db.type/ref
+  :db/index true
+  :db/cardinality :db.cardinality/one
+  :db.install/_attribute :db.part/db}
+ {:db/doc "Submission is for this Release"
+  :db/id #db/id[:db.part/db]
+  :db/ident :submission/release
+  :db/valueType :db.type/ref
+  :db/index true
+  :db/cardinality :db.cardinality/one
+  :db.install/_attribute :db.part/db}
+
+ ;; submission/state enum values
+ [:db/add #db/id[:db.part/user] :db/ident :submission.state/not-validated]
+ [:db/add #db/id[:db.part/user] :db/ident :submission.state/queued]
+ [:db/add #db/id[:db.part/user] :db/ident :submission.state/validating]
+ [:db/add #db/id[:db.part/user] :db/ident :submission.state/invalid]
+ [:db/add #db/id[:db.part/user] :db/ident :submission.state/valid]
+ [:db/add #db/id[:db.part/user] :db/ident :submission.state/signed-off]]

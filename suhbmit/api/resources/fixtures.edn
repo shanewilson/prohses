@@ -1,23 +1,39 @@
-;; releases
-[
- {:db/id #db/id[:db.part/user]
-  :release/version 1
-  :release/state "COMPLETE"}
- {:db/id #db/id[:db.part/user]
-  :release/version 2
-  :release/state "COMPLETE"}
- {:db/id #db/id[:db.part/user]
-  :release/version 3
-  :release/state "OPEN"}
+[;; dictionary
+ {:db/id #db/id [:db.part/user -1000001]
+  :dictionary/version 1
+  :dictionary/state :dictionary.state/frozen}
+ {:db/id #db/id [:db.part/user -1000002]
+  :dictionary/version 2
+  :dictionary/state :dictionary.state/fluid}
+
+ ;; releases
+ {:db/id #db/id [:db.part/user -1000003]
+  :release/number 1
+  :release/state :release.state/closed
+  :release/dictionary #db/id[:db.part/user -1000001]}
+ {:db/id #db/id [:db.part/user -1000004]
+  :release/number 2
+  :release/state :release.state/closed
+  :release/dictionary #db/id[:db.part/user -1000001]}
+ {:db/id #db/id [:db.part/user -1000005]
+  :release/number 3
+  :release/state :release.state/open
+  :release/dictionary #db/id[:db.part/user -1000002]}
 
  ;; projects
- {:db/id #db/id[:db.part/user]
+ {:db/id #db/id [:db.part/user -1000006]
   :project/code "PRJ1"
   :project/name "Project One"}
- {:db/id #db/id[:db.part/user]
+ {:db/id #db/id [:db.part/user -1000007]
   :project/code "PRJ2"
   :project/name "Project Two"}
- {:db/id #db/id[:db.part/user]
+ {:db/id #db/id [:db.part/user -1000008]
   :project/code "PRJ3"
   :project/name "Project Three"}
+
+ ;; submissions
+ {:db/id #db/id [:db.part/user]
+  :submission/project #db/id[:db.part/user -1000006]
+  :submission/release #db/id[:db.part/user -1000003]
+  :submission/state :submission.state/signed-off}
  ]
