@@ -1,6 +1,13 @@
 (ns prohses.suhbmit.api.services
   (:require [datomic.api :as d]))
 
+(defn q
+  [query keys]
+  "Datomic Query Shorthand for returning results as a map"
+  (->>
+   (d/q query (d/db conn))
+   (map (partial zipmap keys))))
+
 ;; store database uri
 (def uri "datomic:mem://test")
 
@@ -10,7 +17,6 @@
 
 ;; connect to database
 (def conn (d/connect uri))
-(def db (d/db conn))
 
 ;; parse schema edn file
 (def schema-tx (read-string (slurp "resources/schema.edn")))
@@ -23,8 +29,8 @@
 (defn get-projects
   []
   ""
-  (d/q '[:find ?p ?code ?name
-         :where
-         [?p :project/name ?name]
-         [?p :project/code ?code]]
-       db))
+  (q '[:find ?p ?code ?name
+       :where
+       [?p :project/code ?code]
+       [?p :project/name ?name]]
+     [:id :code :name]))

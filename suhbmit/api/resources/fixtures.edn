@@ -1,5 +1,17 @@
-;; project
-[{:db/id #db/id[:db.part/user]
+;; releases
+[
+ {:db/id #db/id[:db.part/user]
+  :release/version 1
+  :release/state "COMPLETE"}
+ {:db/id #db/id[:db.part/user]
+  :release/version 2
+  :release/state "COMPLETE"}
+ {:db/id #db/id[:db.part/user]
+  :release/version 3
+  :release/state "OPEN"}
+
+ ;; projects
+ {:db/id #db/id[:db.part/user]
   :project/code "PRJ1"
   :project/name "Project One"}
  {:db/id #db/id[:db.part/user]
@@ -7,4 +19,5 @@
   :project/name "Project Two"}
  {:db/id #db/id[:db.part/user]
   :project/code "PRJ3"
-  :project/name "Project Three"}]
+  :project/name "Project Three"}
+ ]
