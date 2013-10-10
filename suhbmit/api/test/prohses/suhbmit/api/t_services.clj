@@ -1,26 +1,25 @@
 (ns prohses.suhbmit.api.t-services
-  (:require [midje.sweet :refer [fact facts]]
+  (:require [midje.sweet :refer [fact facts background]]
             [datomic.api :as d]
             [prohses.suhbmit.api.services :as services]))
 
 ;; store database uri
-(def uri "datomic:mem://test")
+(defn- mem-db!
+  []
+  ""
+  (let [uri "datomic:mem://test"]
+    (d/delete-database uri)
+    (d/create-database uri)
+    (let [conn (d/connect uri)
+          schema (load-file "resources/datomic/schema.edn")
+          fixtures (load-file "resources/datomic/fixtures.edn")]
+      @(d/transact conn schema)
+      @(d/transact conn fixtures)
+      conn)))
 
-;; create database
-(d/delete-database uri)
-(d/create-database uri)
+(background (around :facts (with-redefs [prohses.suhbmit.api.services/conn (mem-db!)]
+                             ?form)))
 
-;; connect to database
-(def conn (d/connect uri))
-
-;; parse schema edn file
-(def schema-tx (read-string (slurp "resources/schema.edn")))
-@(d/transact conn schema-tx)
-
-;; parse seed data
-(def data-tx (read-string (slurp "resources/fixtures.edn")))
-@(d/transact conn data-tx)
-
-(facts "about services"
-       (fact "projects"
+(facts "Project Service"
+       (fact "get-projects should return all projects"
              (services/get-projects) => {:name "blah"}))
