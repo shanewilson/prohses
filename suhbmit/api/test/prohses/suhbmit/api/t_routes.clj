@@ -1,7 +1,15 @@
 (ns prohses.suhbmit.api.t-routes
   (:use midje.sweet)
   (:require [datomic.api :as d]
-            [prohses.suhbmit.api.routes :as routes]))
+            [cheshire.core :refer :all]
+            [prohses.suhbmit.api.handler :as handler]))
+
+;; :body is a string for some reason
+(defn parse-body
+  [r]
+  ""
+  {:status (:status r)
+   :body (-> r :body  (parse-string true))})
 
 ;; create in-mem database and load test data
 (defn- mem-db!
@@ -21,140 +29,133 @@
 (background (around :facts (with-redefs [prohses.suhbmit.api.services/conn (mem-db!)]
                              ?form)))
 
+(facts "Dictionary route"
+       (fact "/api/dictionaries should return all dictionaries"
+             (parse-body (handler/app {:uri "/api/dictionaries" :request-method :get}))
+             => (contains {:status 200
+                           :body {:status "success"
+                                  :data [{:version 1
+                                          :state "frozen"}
+                                         {:version 2
+                                          :state "fluid"}]}}))
+       (fact "/api/dictionaries/:version should return one dictionary with version :version"
+             (parse-body (handler/app {:uri "/api/dictionaries/1" :request-method :get}))
+             => (contains {:status 200
+                           :body {:status "success"
+                                  :data {:version 1
+                                         :state "frozen"}}}))
+       (fact "/api/dictionaries/:version/releases should return all releases using that version dictionary"
+             (parse-body (handler/app {:uri "/api/dictionaries/1/releases" :request-method :get}))
+             => (contains {:status 200
+                           :body {:status "success"
+                                  :data [{:number 1
+                                          :state "closed"
+                                          :dictionary 1}
+                                         {:number 2
+                                          :state "closed"
+                                          :dictionary 1}]}})))
 
-;; (facts "Dictionary route"
-;;  (fact "/api/dictionaries should return all dictionaries"
-;;    (routes/api {:uri "/api/dictionaries" :request-method :get})
-;;    => (contains {:status 200
-;;                  :body [{:id 1
-;;                          :state "CLOSED"}
-;;                         {:id 2
-;;                          :state "OPEN"}]}))
-;;  (fact "/api/dictionaries/:version should return one dictionary with version :version"
-;;    (routes/api {:uri "/api/dictionaries/1" :request-method :get})
-;;    => (contains {:status 200
-;;                  :body {:id 1
-;;                         :state "CLOSED"
-;;                         :data "{\"key\":\"value\"}"}}))
-;;  (fact "/api/dictionaries/:version/releases should return all releases using that version dictionary"
-;;    (routes/api {:uri "/api/dictionaries/1/releases" :request-method :get})
-;;    => (contains {:status 200
-;;                  :body [{:id 1
-;;                          :name "Release 1"
-;;                          :state "CLOSED"
-;;                          :released nil
-;;                          :dictionary_id 1}
-;;                         {:id 2
-;;                          :name "Release 2"
-;;                          :state "OPEN"
-;;                          :released nil
-;;                          :dictionary_id 1}]})))
+(facts "Release route"
+       (fact "/api/releases should return all Releases"
+             (parse-body (handler/app {:uri "/api/releases" :request-method :get}))
+             => (contains {:status 200
+                           :body {:status "success"
+                                  :data [{:number 1
+                                          :state "closed"
+                                          :dictionary 1}
+                                         {:number 2
+                                          :state "closed"
+                                          :dictionary 1}
+                                         {:number 3
+                                          :state "open"
+                                          :dictionary 2}]}}))
+       (fact "/api/releases/:number should return one Release"
+             (parse-body (handler/app {:uri "/api/releases/1" :request-method :get}))
+             => (contains {:status 200
+                           :body {:status "success"
+                                  :data {:number 1
+                                         :state "closed"
+                                         :dictionary 1}}}))
+       (fact "/api/releases/:number/dictionary should return the Dictionary used"
+             (parse-body (handler/app {:uri "/api/releases/1/dictionary" :request-method :get}))
+             => (contains {:status 200
+                           :body {:status "success"
+                                  :data {:version 1
+                                         :state "frozen"}}}))
+       (fact "/api/releases/:number/projects should return all Project Submissions for Release :number"
+             (parse-body (handler/app {:uri "/api/releases/1/projects" :request-method :get}))
+             => (contains {:status 200
+                           :body {:status "success"
+                                  :data [{:project "PRJ1"
+                                          :release 1
+                                          :state "signed-off"}
+                                         {:project "PRJ2"
+                                          :release 1
+                                          :state "signed-off"}
+                                         {:project "PRJ3"
+                                          :release 1
+                                          :state "signed-off"}]}}))
+       (fact "/api/releases/:number/projects/:code should return Project :code Submission for Release :number"
+             (parse-body (handler/app {:uri "/api/releases/1/projects/PRJ1" :request-method :get}))
+             => (contains {:status 200
+                           :body {:status "success"
+                                  :data {:project "PRJ1"
+                                         :release 1
+                                         :state "signed-off"}}}))
+       ;;  (fact "/api/releases/:version/report should return a summary report if it exists"
+       ;;    (parse-body (handler/app {:uri "/api/releases/1/report" :request-method :get}))
+       ;;    => (contains {:status 200
+       ;;                  :body {:status "success"
+       ;;                         :data {:id 1
+       ;;                         :state "CLOSED"
+       ;;                         :data "{\"key\":\"value\"}"}}}))
+       ;;  (fact "/api/releases/:version/report should return a 404 if summary report does not exist"
+       ;;    (parse-body (handler/app {:uri "/api/releases/1/report" :request-method :get}))
+       ;;    => (contains {:status 200
+       ;;                  :body {:status "success"
+       ;;                         :data {:id 1
+       ;;                         :state "CLOSED"
+       ;;                         :data "{\"key\":\"value\"}"}}}))
+       )
 
-;; (facts "Release route"
-;;  (fact "/api/releases should return all Releases"
-;;    (routes/api {:uri "/api/releases" :request-method :get})
-;;    => (contains {:status 200
-;;                  :body [{:id 1
-;;                          :name "Release 1"
-;;                          :state "CLOSED"
-;;                          :released nil
-;;                          :dictionary_id 1}
-;;                         {:id 2
-;;                          :name "Release 2"
-;;                          :state "OPEN"
-;;                          :released nil
-;;                          :dictionary_id 1}]}))
-;;  (fact "/api/releases/:version should return one Release with version :version"
-;;    (routes/api {:uri "/api/releases/1" :request-method :get})
-;;    => (contains {:status 200
-;;                  :body {:id 1
-;;                         :name "Release 1"
-;;                         :state "CLOSED"
-;;                         :released nil
-;;                         :dictionary_id 1}}))
-;;  (fact "/api/releases/:version/dictionary should return the dictionary used"
-;;    (routes/api {:uri "/api/releases/1/dictionary" :request-method :get})
-;;    => (contains {:status 200
-;;                  :body {:id 1
-;;                         :state "CLOSED"
-;;                         :data "{\"key\":\"value\"}"}}))
-;;  (fact "/api/releases/:version/report should return a summary report if it exists"
-;;    (routes/api {:uri "/api/releases/1/report" :request-method :get})
-;;    => (contains {:status 200
-;;                  :body {:id 1
-;;                         :state "CLOSED"
-;;                         :data "{\"key\":\"value\"}"}}))
-;;  (fact "/api/releases/:version/report should return a 404 if summary report does not exist"
-;;    (routes/api {:uri "/api/releases/1/report" :request-method :get})
-;;    => (contains {:status 200
-;;                  :body {:id 1
-;;                         :state "CLOSED"
-;;                         :data "{\"key\":\"value\"}"}})))
 
 (facts "Project resources"
- (fact "/api/projects should return all Projects"
-   (routes/api {:uri "/api/projects" :request-method :get})
-   => (contains {:status 200
-                 :body [{:name "Project 1"
-                         :id 1}
-                        {:name "Project 2"
-                         :id 2}]}))
- (fact "/api/projects/:code should return one Project with code :code"
-   (routes/api {:uri "/api/projects/1" :request-method :get})
-   => (contains {:status 200
-                 :body {:name "Project 1"
-                        :id 1}})))
-
-;; (facts "about Submission resources"
-;;  (fact "that return all Submissions for a Release"
-;;    (routes/api {:uri "/api/releases/1/submissions" :request-method :get})
-;;    => (contains {:status 200
-;;                  :body [{:release_name "Release 1"
-;;                          :release_id 1
-;;                          :project_name "Project 1"
-;;                          :project_id 1
-;;                          :state "SIGNED OFF"
-;;                          :id 1}
-;;                         {:release_name "Release 1"
-;;                          :release_id 1
-;;                          :project_name "Project 2"
-;;                          :project_id 2
-;;                          :state "SIGNED OFF"
-;;                          :id 2}]}))
-;;  (fact "that return one Submission for a Release"
-;;    (routes/api {:uri "/api/releases/1/submissions/1" :request-method :get})
-;;    => (contains {:status 200
-;;                  :body {:release_name "Release 1"
-;;                         :release_id 1
-;;                         :project_name "Project 1"
-;;                         :project_id 1
-;;                         :state "SIGNED OFF"
-;;                         :id 1}}))
-;;  (fact "that return all Submissions for a Project"
-;;    (routes/api {:uri "/api/projects/1/submissions" :request-method :get})
-;;    => (contains {:status 200
-;;                  :body [{:project_id 1
-;;                          :project_name "Project 1"
-;;                          :release_id 1
-;;                          :release_name "Release 1"
-;;                          :state "SIGNED OFF"
-;;                          :id 1}
-;;                         {:project_id 1
-;;                          :project_name "Project 1"
-;;                          :release_id 2
-;;                          :release_name "Release 2"
-;;                          :state "VALID"
-;;                          :id 3}]}))
-;;  (fact "that return one Submission for a Project"
-;;    (routes/api {:uri "/api/projects/1/submissions/1" :request-method :get})
-;;    => (contains {:status 200
-;;                  :body {:project_id 1
-;;                         :project_name "Project 1"
-;;                         :release_id 1
-;;                         :release_name "Release 1"
-;;                         :state "SIGNED OFF"
-;;                         :id 1}}))
-;;  )
+       (fact "/api/projects should return all Projects"
+             (parse-body (handler/app {:uri "/api/projects" :request-method :get}))
+             => (contains {:status 200
+                           :body {:status "success",
+                                  :data [{:code "PRJ1"
+                                          :name "Project One"}
+                                         {:code "PRJ2"
+                                          :name "Project Two"}
+                                         {:code "PRJ3"
+                                          :name "Project Three"}]}}))
+       (fact "/api/projects/:code should return one Project with code :code"
+             (parse-body (handler/app {:uri "/api/projects/PRJ1" :request-method :get}))
+             => (contains {:status 200
+                           :body {:status "success"
+                                  :data {:code "PRJ1"
+                                         :name "Project One"}}}))
+       (fact "/api/projects/1/releases should return all Release submissions for Project :code"
+             (parse-body (handler/app {:uri "/api/projects/PRJ1/releases" :request-method :get}))
+             => (contains {:status 200
+                           :body {:status "success"
+                                  :data [{:project "PRJ1"
+                                          :release 1
+                                          :state "signed-off"}
+                                         {:project "PRJ1"
+                                          :release 2
+                                          :state "signed-off"}
+                                         {:project "PRJ1"
+                                          :release 3
+                                          :state "not-validated"}]}}))
+       (fact "/api/projects/PRJ1/releases/1 should return Release :number Submission for Project :code"
+             (parse-body (handler/app {:uri "/api/projects/PRJ1/releases/1" :request-method :get}))
+             => (contains {:status 200
+                           :body {:status "success"
+                                  :data {:project "PRJ1"
+                                         :release 1
+                                         :state "signed-off"}}})))
 
 ;; (facts "about Report resources"
 ;;  (fact "that return all for a Release"

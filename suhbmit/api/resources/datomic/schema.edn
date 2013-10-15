@@ -50,7 +50,7 @@
   {:db/doc "Dictionary used for this Release"
   :db/id #db/id[:db.part/db]
   :db/ident :release/dictionary
-  :db/valueType :db.type/ref
+  :db/valueType :db.type/long
   :db/cardinality :db.cardinality/one
   :db.install/_attribute :db.part/db}
 
@@ -68,14 +68,14 @@
  {:db/doc "Submission is for this Project"
   :db/id #db/id[:db.part/db]
   :db/ident :submission/project
-  :db/valueType :db.type/ref
+  :db/valueType :db.type/string
   :db/index true
   :db/cardinality :db.cardinality/one
   :db.install/_attribute :db.part/db}
  {:db/doc "Submission is for this Release"
   :db/id #db/id[:db.part/db]
   :db/ident :submission/release
-  :db/valueType :db.type/ref
+  :db/valueType :db.type/long
   :db/index true
   :db/cardinality :db.cardinality/one
   :db.install/_attribute :db.part/db}
